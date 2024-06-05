@@ -5,6 +5,37 @@
   }
   
   .main-content.expanded {
-    margin-left: 0;
+    margin-left: 200px; /* Adjust if needed */
+  }
+  
+  .sidebar {
+    transition: margin-left 0.3s ease;
+  }
+  
+  .sidebar.hidden {
+    margin-left: -200px;
+  }
+
+  .mat-toolbar {
+    height: 8%;
+    background-color: #004876;
+    color: white; /* Set the text color */
+  }
+  
+  .mat-icon {
+    color: #f59d00; /* Set the color of the icon */
+  }
+  .title {
+    height: 50px;
+    background-color: #ffffff;
+    border: #ffffff;
+    border-radius: 10px 10px 10px 10px;
+    color: #f59d00; 
+    font-size:155%;
+    font-weight: bold;
+  }
+  .subtitle {
+    color: #ffffff; 
+    font-size:130%;
   }
   

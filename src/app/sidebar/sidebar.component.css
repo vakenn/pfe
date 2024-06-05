@@ -1,27 +1,35 @@
 .sidebar {
-    width: 200px;
-    background-color: #f8f9fa;
-    height: 100vh;
-    position: fixed;
-    transform: translateX(-200px);
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar:not(.hidden) {
-    transform: translateX(0);
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  li {
-    padding: 10px 20px;
-  }
-  
-  a {
-    text-decoration: none;
-    color: #333;
-  }
-  
+  width: 20%;
+  height: 100vh;
+  position: fixed;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  background-image: url('/images/bg_biat.png');
+  background-size: 500%;
+  background-position: center;
+  overflow: hidden;
+
+}
+
+.sidebar.visible {
+  transform: translateX(0);
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  padding: 10px 20px;
+  display: block;
+}
+
+a {
+  text-decoration: double;
+  color: #004876;
+  font-weight: bold;
+  font-size: 120%;
+  display: block;
+  text-align: center;
+}

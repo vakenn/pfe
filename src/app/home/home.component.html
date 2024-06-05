@@ -1,1 +1,12 @@
-<p>home works!</p>
+<div class="test">
+    <form (submit)="onSubmit($event)">
+        <div style="display: grid;">
+            <h1 class="form-title">Upload Form</h1>
+            <input class="form-input" type="file" name="file" id="file"  (change)="onFileSelected($event)">
+            <button class="form-button" type="submit">Choose Data</button>
+        </div>
+        <br>
+        <br>
+        <h6 id="erreurType" style="position: relative;left: -170px;"></h6>
+    </form>
+</div>

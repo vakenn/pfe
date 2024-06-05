@@ -1,15 +1,28 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { SideBarComponent } from './sidebar/sidebar.component';
-import { routes } from './app.routes';
+import { SidebarComponent } from './sidebar/sidebar.component';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { RouterModule } from '@angular/router'; 
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, SideBarComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css'],
+  standalone: true,
+  imports: [
+    SidebarComponent,
+    MatToolbarModule,
+    MatIconModule,
+    MatButtonModule,
+    RouterModule
+  ]
 })
 export class AppComponent {
-  title = 'dashboarding';
+  title = "dashboarding";
+  isSidebarVisible = false;
+
+  toggleSidebar() {
+    this.isSidebarVisible = !this.isSidebarVisible;
+  }
 }
