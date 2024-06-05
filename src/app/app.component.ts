@@ -1,9 +1,12 @@
-import { Component } from '@angular/core';
+import { Component  } from '@angular/core';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterModule } from '@angular/router'; 
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common'; 
+import { NgModule } from '@angular/core';
+import { TablesComponent } from './tables/tables.component';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +18,9 @@ import { RouterModule } from '@angular/router';
     MatToolbarModule,
     MatIconModule,
     MatButtonModule,
-    RouterModule
+    RouterModule,
+    CommonModule,
+    TablesComponent,
   ]
 })
 export class AppComponent {

@@ -1,41 +1,29 @@
 <div class="body">
-    
-
-    <div class="col-12" id="initial">
-        <div class="bg-secondary rounded h-100 p-4">
-            <div style="display: flex;">
-                <div style="flex: 50%;"><h6 class="mb-4">Table</h6></div>
-                <div style="flex: 50%;margin-left: 69%;">
-                    <a href=""  class="btn btn-success btn-sm">Add</a>
-                    <button onclick="" style="height:63%;"  class="btn btn-light rounded-pill m-2">!</button>
-                </div>   
-            </div>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Id</th>
-                  <th>Article_id</th>
-                  <th>Nom</th>
-                  <th>Description</th>
-                  <th>Prix</th>
-                  <th>Type</th>
-                  <th>actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>article.id </td>
-                  <td>article.ArticleId </td>
-                  <td>article.Nom </td>
-                  <td>article.Description </td>
-                  <td>article.Prix </td>
-                  <td>article.Type </td>
-                  <td>
-                    <a class="btn btn-warning btn-sm" href="">show</a>
-                  </td>
-                </tr>
-              </tbody>
-            </table> 
+  <div class="col-12" id="initial">
+    <div class="bg-secondary rounded h-100 p-4">
+      <div style="display: flex;">
+        <div style="flex: 50%;">
+          <h6 class="mb-4">Table</h6>
         </div>
+        <div style="flex: 50%;margin-left: 69%;">
+          <a href="" class="btn btn-success btn-sm">Add</a>
+          <button onclick="" style="height:63%;" class="btn btn-light rounded-pill m-2">!</button>
+        </div>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <!-- Assuming the first object in the array contains the column names -->
+            <th *ngFor="let column of fileContentTest[0][0]">{{ column }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Starting from the second object (index 1) to avoid displaying column names again -->
+          <tr *ngFor="let row of fileContentTest[0].slice(1)">
+            <td *ngFor="let value of row">{{ value }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 </div>

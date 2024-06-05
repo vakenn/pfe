@@ -1,17 +1,18 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as XLSX from 'xlsx';
+import { IndexedDBService } from "../indexed-db.service";
 
 
 @Component({
   selector: 'app-home',
-  standalone: true,
-  imports: [],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  styleUrls: ['./home.component.css']
 })
 export class HomeComponent {
   selectedFile: File | null = null;
+
+  constructor(private indexedDBService: IndexedDBService) {}
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -27,15 +28,18 @@ export class HomeComponent {
       const extension = this.selectedFile.name.split('.').pop() ?? '';
       if (allowedExtensions.includes(extension)) {
         const reader = new FileReader();
-        reader.onload = () => {
+        reader.onload = async () => {
           const fileContent = reader.result as string;
-          sessionStorage.setItem('uploadedFile', fileContent);
-          console.log('File content saved in session storage.');
-          const fileContentTest = sessionStorage.getItem('uploadedFile')?? '';
-          console.log(fileContentTest);
-          console.log(extractData(fileContentTest,extension))
+          const extractedData = extractData(fileContent, extension);
+          console.log(extractedData);
+          await this.indexedDBService.setItem('extractedData', JSON.stringify(extractedData));
         };
-        reader.readAsDataURL(this.selectedFile);
+
+        if (['xlsx', 'xls'].includes(extension)) {
+          reader.readAsBinaryString(this.selectedFile);
+        } else {
+          reader.readAsText(this.selectedFile);
+        }
       } else {
         console.error(`Unsupported file extension: ${extension}`);
         const erreurType = document.getElementById("erreurType");
@@ -47,8 +51,7 @@ export class HomeComponent {
   }
 }
 
-
-function extractData(fileContent: string, fileType: string): any[] {
+function extractData(fileContent: string, fileType: string): any[] | any[][] {
   switch (fileType) {
     case 'csv':
       return extractCSVData(fileContent);
@@ -73,7 +76,7 @@ function extractCSVData(fileContent: string): any[] {
   const data = [];
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i].split(',');
-    const obj : { [key: string]: any } = {};
+    const obj: { [key: string]: any } = {};
     for (let j = 0; j < headers.length; j++) {
       obj[headers[j]] = row[j];
     }
@@ -83,13 +86,16 @@ function extractCSVData(fileContent: string): any[] {
 }
 
 function extractXMLData(fileContent: string): any[] {
-  const xmlDoc = new DOMParser().parseFromString(fileContent, 'text/xml');
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(fileContent, 'application/xml');
+  const elements = Array.from(xmlDoc.documentElement.children); // Convert HTMLCollection to array
   const data = [];
-  const elements = xmlDoc.querySelectorAll('element');
-  for (let i = 0; i < elements.length; i++) {
-    const element = elements[i];
-    const obj : { [key: string]: any } = {};
-    obj[element.tagName] = element.textContent;
+  
+  for (const element of elements) {
+    const obj: { [key: string]: any } = {};
+    for (const child of Array.from(element.children)) { // Convert HTMLCollection to array
+      obj[child.tagName] = child.textContent;
+    }
     data.push(obj);
   }
   return data;
@@ -105,59 +111,27 @@ function extractJSONData(fileContent: string): any[] {
 }
 
 function extractXLSXData(fileContent: string): any[][] {
-  const workbook = XLSX.read(fileContent, { type: 'array' });
+  const workbook = XLSX.read(fileContent, { type: 'binary' });
   const data: any[][] = [];
 
-  for (const sheetName in workbook.Sheets) {
-    if (workbook.Sheets.hasOwnProperty(sheetName)) {
-      const sheet = workbook.Sheets[sheetName];
-      const sheetData: any[] = [];
-
-      for (let i = 1; sheet[`A${i}`] !== undefined; i++) {
-        const row: any[] = [];
-        for (let j = 1; sheet[`${String.fromCharCode(64 + j)}${i}`] !== undefined; j++) {
-          row.push(sheet[`${String.fromCharCode(64 + j)}${i}`].v);
-        }
-        sheetData.push(row);
-      }
-
-      data.push(sheetData);
-    }
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    const sheetData: any[] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    data.push(sheetData);
   }
-
+  
   return data;
 }
 
-function extractXLSData(fileContent: string): any[][] {
-  const workbook = XLSX.read(fileContent, { type: 'array' });
-  const data: any[][] = [];
-
-  for (const sheetName in workbook.Sheets) {
-    if (workbook.Sheets.hasOwnProperty(sheetName)) {
-      const sheet = workbook.Sheets[sheetName];
-      const sheetData: any[] = [];
-
-      for (let i = 1; sheet[`A${i}`]; i++) {
-        const row: any[] = [];
-        for (let j = 1; sheet[`${String.fromCharCode(64 + j)}${i}`]; j++) {
-          row.push(sheet[`${String.fromCharCode(64 + j)}${i}`].v);
-        }
-        sheetData.push(row);
-      }
-
-      data.push(sheetData);
-    }
-  }
-
-  return data;
+function extractXLSData(fileContent: string): any[] {
+  return extractXLSXData(fileContent);
 }
 
 function extractTXTData(fileContent: string): any[] {
   const rows = fileContent.split('\n');
   const data = [];
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i].split(',');
-    data.push(row);
+  for (const row of rows) {
+    data.push(row.split(','));
   }
   return data;
 }
