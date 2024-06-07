@@ -1,1 +1,31 @@
-<p>analytics works!</p>
+<div class="test">
+    <form [formGroup]="formulaForm" (ngSubmit)="onSubmit()">
+      <div style="display: grid;">
+        <h1 class="form-title">Upload Form</h1>
+        <button class="form-button" type="button" (click)="addExpression()">Add Formula</button>
+      </div>
+      <div formArrayName="formulas" *ngIf="formulas.length > 0">
+        <div [formGroupName]="0" style="display: flex; flex-direction: row;">
+          <div *ngFor="let expression of getExpressions(0).controls; let j = index" [formGroupName]="j" style="display: flex; align-items: center; margin-right: 10px;">
+            <ng-container *ngIf="expression.get('column')">
+              <select formControlName="column">
+                <option *ngFor="let column of displayedColumns" [value]="column">{{ column }}</option>
+              </select>
+            </ng-container>
+            <ng-container *ngIf="expression.get('sign')">
+              <select formControlName="sign" style="margin-left: 5px; margin-right: 5px;">
+                <option value="+">+</option>
+                <option value="-">-</option>
+                <option value="*">*</option>
+                <option value="/">/</option>
+              </select>
+            </ng-container>
+          </div>
+          <button type="button" (click)="removeExpression(getExpressions.length - 1)" style="margin-left: 10px;">Remove</button>
+        </div>
+      </div>
+      <button class="form-button" type="submit">Submit</button>
+      <h6 id="erreurType" style="position: relative; left: -170px;"></h6>
+    </form>
+  </div>
+  

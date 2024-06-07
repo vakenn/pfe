@@ -10,20 +10,20 @@
           <button onclick="" style="height:63%;" class="btn btn-light rounded-pill m-2">!</button>
         </div>
       </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <!-- Assuming the first object in the array contains the column names -->
-            <th *ngFor="let column of fileContentTest[0][0]">{{ column }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Starting from the second object (index 1) to avoid displaying column names again -->
-          <tr *ngFor="let row of fileContentTest[0].slice(1)">
-            <td *ngFor="let value of row">{{ value }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div style="overflow-x: auto;">
+        <table  class="mat-elevation-z8">
+            <thead>
+                <th style="border: 1px solid #f59d00;" *ngFor="let column of fileContentTest[0][0]">{{ column }}</th>
+            </thead>
+            <tbody>
+                <tr *ngFor="let row of fileContentAff">
+                  <td style="border: 1px solid #f59d00;" *ngFor="let value of row">{{ value }}</td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+      <mat-paginator [length]="fileContentTest[0].length" [pageSize]="pageSize" [pageSizeOptions]="[50, 100, 200]" (page)="onPageChange($event)">
+      </mat-paginator>
     </div>
   </div>
 </div>

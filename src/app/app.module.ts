@@ -16,8 +16,7 @@ import { routes } from './app.routes';
 @NgModule({
     declarations: [
       HomeComponent,
-      DashboardComponent,
-      AnalyticsComponent
+      DashboardComponent
     ],
     imports: [
       BrowserModule,
@@ -25,7 +24,8 @@ import { routes } from './app.routes';
       HttpClientModule,
       FormsModule,
       TablesComponent,
-      CommonModule
+      CommonModule,
+      AnalyticsComponent
     ],
     providers: [IndexedDBService]
   })
