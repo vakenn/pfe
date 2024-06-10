@@ -131,15 +131,147 @@ export class AnalyticsComponent implements OnInit {
     return isValid && openParentheses === 0;
   }
 
+  parseAndCompute(expressionParts: any[], row: any): number {
+    let stack: any[] = [];
+    let postfix: any[] = [];
+
+    // Convert infix expression to postfix expression
+    for (let part of expressionParts) {
+      if (typeof part === 'number' || part.match(/^[A-Za-z]+$/)) {
+        postfix.push(part);
+      } else if (part === '(') {
+        stack.push(part);
+      } else if (part === ')') {
+        while (stack.length && stack[stack.length - 1] !== '(') {
+          postfix.push(stack.pop());
+        }
+        stack.pop();
+      } else {
+        while (stack.length && this.getPrecedence(part) <= this.getPrecedence(stack[stack.length - 1])) {
+          postfix.push(stack.pop());
+        }
+        stack.push(part);
+      }
+    }
+
+    while (stack.length) {
+      postfix.push(stack.pop());
+    }
+
+    // Evaluate postfix expression
+    let resultStack: number[] = [];
+    for (let part of postfix) {
+      if (typeof part === 'number') {
+        resultStack.push(part);
+      } else if (part.match(/^[A-Za-z]+$/)) {
+        const value = parseFloat(row[part]);
+        if (!isNaN(value)) {
+          resultStack.push(value);
+        } else {
+          throw new Error(`Invalid value for column: ${part}`);
+        }
+      } else {
+        const b = resultStack.pop();
+        const a = resultStack.pop();
+
+        if (a === undefined || b === undefined) {
+          throw new Error(`Invalid arithmetic operation with undefined operands`);
+        }
+
+        switch (part) {
+          case '+':
+            resultStack.push(a + b);
+            break;
+          case '-':
+            resultStack.push(a - b);
+            break;
+          case '*':
+            resultStack.push(a * b);
+            break;
+          case '/':
+            if (b === 0) {
+              throw new Error(`Division by zero`);
+            }
+            resultStack.push(a / b);
+            break;
+          default:
+            throw new Error(`Unknown operator: ${part}`);
+        }
+      }
+    }
+
+    const result = resultStack.pop();
+    if (result === undefined) {
+      throw new Error(`Failed to compute result`);
+    }
+    return result;
+  }
+
+  getPrecedence(op: string): number {
+    switch (op) {
+      case '+':
+      case '-':
+        return 1;
+      case '*':
+      case '/':
+        return 2;
+      default:
+        return 0;
+    }
+  }
+
   onSubmit(): void {
+    const expressions = this.getExpressions(0);
+    const equationParts: any[] = [];
+    const chosenColumns: string[] = [];
+  
+    for (let i = 0; i < expressions.length; i++) {
+      const control = expressions.at(i);
+      if (control.get('column')) {
+        const column = control.get('column')?.value;
+        if (column) {
+          equationParts.push(column);
+          if (!chosenColumns.includes(column)) {
+            chosenColumns.push(column);
+          }
+        }
+      } else if (control.get('sign')) {
+        equationParts.push(control.get('sign')?.value);
+      } else if (control.get('parenthesis')) {
+        equationParts.push(control.get('parenthesis')?.value);
+      }
+    }
+  
     if (this.isValidMathExpression()) {
       this.validationMessage = 'Valid expression';
       this.showAdditionalButtons = true;
+  
+      this.displayedColumns = [...chosenColumns, 'Result'];
+  
+      // Evaluate the equation for each row
+      this.fileContentTest.forEach((row) => {
+        try {
+          const result = this.parseAndCompute(equationParts, row);
+          row['Result'] = result;
+        } catch (error) {
+          if (error instanceof Error) {
+            console.error(error);
+            this.validationMessage = `Error: ${error.message}`;
+          } else {
+            console.error('Unexpected error', error);
+            this.validationMessage = 'Unexpected error occurred';
+          }
+          this.showAdditionalButtons = false;
+        }
+      });
     } else {
       this.validationMessage = 'Invalid expression';
       this.showAdditionalButtons = false;
     }
   }
+
+  
+  
 
   addCreatedColumn(): void {
     // Add your logic to handle adding the created column

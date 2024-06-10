@@ -1,43 +1,56 @@
 <div class="test">
-    <form [formGroup]="formulaForm" (ngSubmit)="onSubmit()">
-      <div style="display: grid;">
-        <h1 class="form-title">Formula Form</h1>
-        <div>
-          <button class="form-button" type="button" (click)="addColumnField()">Add Column</button>
-          <button class="form-button" type="button" (click)="addSignField()">Add Sign</button>
-          <button class="form-button" type="button" (click)="addParenthesis('(')"> ( </button>
-          <button class="form-button" type="button" (click)="addParenthesis(')')"> ) </button>
+  <form [formGroup]="formulaForm" (ngSubmit)="onSubmit()">
+    <div style="display: grid;">
+      <h1 class="form-title">Formula Form</h1>
+      <div>
+        <button class="form-button" type="button" (click)="addColumnField()">Add Column</button>
+        <button class="form-button" type="button" (click)="addSignField()">Add Sign</button>
+        <button class="form-button" type="button" (click)="addParenthesis('(')"> ( </button>
+        <button class="form-button" type="button" (click)="addParenthesis(')')"> ) </button>
+      </div>
+    </div>
+    <div formArrayName="formulas" *ngIf="formulas.length > 0">
+      <div [formGroupName]="0" style="display: flex; flex-direction: row;">
+        <div *ngFor="let expression of getExpressions(0).controls; let j = index" [formGroupName]="j" style="display: flex; align-items: center; margin-right: 10px;">
+          <ng-container *ngIf="expression.get('column')">
+            <select formControlName="column">
+              <option *ngFor="let column of displayedColumns" [value]="column">{{ column }}</option>
+            </select>
+          </ng-container>
+          <ng-container *ngIf="expression.get('sign')">
+            <select formControlName="sign" style="margin-left: 5px; margin-right: 5px;">
+              <option value="+">+</option>
+              <option value="-">-</option>
+              <option value="*">*</option>
+              <option value="/">/</option>
+            </select>
+          </ng-container>
+          <ng-container *ngIf="expression.get('parenthesis')">
+            <span>{{ expression.get('parenthesis')?.value }}</span>
+          </ng-container>
         </div>
+        <button type="button" (click)="removeExpression(getExpressions(0).length - 1)" style="margin-left: 10px;">Remove</button>
       </div>
-      <div formArrayName="formulas" *ngIf="formulas.length > 0">
-        <div [formGroupName]="0" style="display: flex; flex-direction: row;">
-          <div *ngFor="let expression of getExpressions(0).controls; let j = index" [formGroupName]="j" style="display: flex; align-items: center; margin-right: 10px;">
-            <ng-container *ngIf="expression.get('column')">
-              <select formControlName="column">
-                <option *ngFor="let column of displayedColumns" [value]="column">{{ column }}</option>
-              </select>
-            </ng-container>
-            <ng-container *ngIf="expression.get('sign')">
-              <select formControlName="sign" style="margin-left: 5px; margin-right: 5px;">
-                <option value="+">+</option>
-                <option value="-">-</option>
-                <option value="*">*</option>
-                <option value="/">/</option>
-              </select>
-            </ng-container>
-            <ng-container *ngIf="expression.get('parenthesis')">
-              <span>{{ expression.get('parenthesis')?.value }}</span>
-            </ng-container>
-          </div>
-          <button type="button" (click)="removeExpression(getExpressions(0).length - 1)" style="margin-left: 10px;">Remove</button>
-        </div>
-      </div>
-      <button class="form-button" type="submit">Submit</button>
-      <h6 id="erreurType" style="position: relative; left: -170px;">{{ validationMessage }}</h6>
-      <div *ngIf="showAdditionalButtons" style="margin-top: 10px;">
-        <button class="form-button" type="button" (click)="addCreatedColumn()">Add Created Column</button>
-        <button class="form-button" type="button" (click)="clearForm()">Clear</button>
-      </div>
-    </form>
-  </div>
-  
+    </div>
+    <button class="form-button" type="submit">Submit</button>
+    <h6 id="erreurType" style="position: relative; left: -170px;">{{ validationMessage }}</h6>
+    <div *ngIf="showAdditionalButtons" style="margin-top: 10px;">
+      <button class="form-button" type="button" (click)="addCreatedColumn()">Add Created Column</button>
+      <button class="form-button" type="button" (click)="clearForm()">Clear</button>
+    </div>
+    <div *ngIf="fileContentTest.length > 0">
+      <table mat-table [dataSource]="fileContentTest">
+        <ng-container *ngFor="let column of displayedColumns" [matColumnDef]="column">
+          <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
+          <td mat-cell *matCellDef="let element">{{ element[column] }}</td>
+        </ng-container>
+        <ng-container matColumnDef="Result">
+          <th mat-header-cell *matHeaderCellDef>Result</th>
+          <td mat-cell *matCellDef="let element">{{ element[element.length - 1] }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns.concat(['Result'])"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns.concat(['Result']);"></tr>
+      </table>
+    </div>
+  </form>
+</div>
