@@ -1,9 +1,16 @@
-import { Injectable, Inject, InjectionToken } from '@angular/core';
+import { Injectable, InjectionToken, Inject } from '@angular/core';
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 
-export const WINDOW = new InjectionToken<Window>('WindowToken', {
+export const WINDOW = new InjectionToken<Window | undefined>('WindowToken', {
   providedIn: 'root',
-  factory: () => window
+  factory: () => {
+    if (typeof window !== 'undefined') {
+      return window;
+    } else {
+      console.warn('Window object is not available.');
+      return undefined;
+    }
+  }
 });
 
 interface MyDB extends DBSchema {
@@ -19,8 +26,8 @@ interface MyDB extends DBSchema {
 export class IndexedDBService {
   private dbPromise: Promise<IDBPDatabase<MyDB>> | undefined;
 
-  constructor(@Inject(WINDOW) private window: Window) {
-    if (this.window.indexedDB) {
+  constructor(@Inject(WINDOW) private window: Window | undefined) {
+    if (this.window && this.window.indexedDB) {
       this.dbPromise = openDB<MyDB>('my-database', 1, {
         upgrade(db) {
           db.createObjectStore('files');

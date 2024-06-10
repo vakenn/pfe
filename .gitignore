@@ -40,3 +40,5 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+venv/Lib/site-packages/markupsafe/_speedups.cp311-win_amd64.pyd
+venv/Scripts/python.exe

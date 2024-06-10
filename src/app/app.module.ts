@@ -15,7 +15,6 @@ import { routes } from './app.routes';
 
 @NgModule({
     declarations: [
-      HomeComponent,
       DashboardComponent
     ],
     imports: [

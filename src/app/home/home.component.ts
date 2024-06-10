@@ -40,6 +40,11 @@ export class HomeComponent {
         } else {
           reader.readAsText(this.selectedFile);
         }
+        
+        const erreurType = document.getElementById("erreurType");
+        if (erreurType) {
+          erreurType.innerHTML = "";
+        }
       } else {
         console.error(`Unsupported file extension: ${extension}`);
         const erreurType = document.getElementById("erreurType");

@@ -1,8 +1,13 @@
 <div class="test">
     <form [formGroup]="formulaForm" (ngSubmit)="onSubmit()">
       <div style="display: grid;">
-        <h1 class="form-title">Upload Form</h1>
-        <button class="form-button" type="button" (click)="addExpression()">Add Formula</button>
+        <h1 class="form-title">Formula Form</h1>
+        <div>
+          <button class="form-button" type="button" (click)="addColumnField()">Add Column</button>
+          <button class="form-button" type="button" (click)="addSignField()">Add Sign</button>
+          <button class="form-button" type="button" (click)="addParenthesis('(')"> ( </button>
+          <button class="form-button" type="button" (click)="addParenthesis(')')"> ) </button>
+        </div>
       </div>
       <div formArrayName="formulas" *ngIf="formulas.length > 0">
         <div [formGroupName]="0" style="display: flex; flex-direction: row;">
@@ -20,12 +25,19 @@
                 <option value="/">/</option>
               </select>
             </ng-container>
+            <ng-container *ngIf="expression.get('parenthesis')">
+              <span>{{ expression.get('parenthesis')?.value }}</span>
+            </ng-container>
           </div>
-          <button type="button" (click)="removeExpression(getExpressions.length - 1)" style="margin-left: 10px;">Remove</button>
+          <button type="button" (click)="removeExpression(getExpressions(0).length - 1)" style="margin-left: 10px;">Remove</button>
         </div>
       </div>
       <button class="form-button" type="submit">Submit</button>
-      <h6 id="erreurType" style="position: relative; left: -170px;"></h6>
+      <h6 id="erreurType" style="position: relative; left: -170px;">{{ validationMessage }}</h6>
+      <div *ngIf="showAdditionalButtons" style="margin-top: 10px;">
+        <button class="form-button" type="button" (click)="addCreatedColumn()">Add Created Column</button>
+        <button class="form-button" type="button" (click)="clearForm()">Clear</button>
+      </div>
     </form>
   </div>
   
