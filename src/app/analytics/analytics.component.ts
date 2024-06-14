@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { IndexedDBService } from '../indexed-db.service';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-analytics',
@@ -12,15 +13,23 @@ import { MatTableModule } from '@angular/material/table';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatTableModule
+    MatTableModule,
+    MatPaginatorModule
   ]
 })
 export class AnalyticsComponent implements OnInit {
   fileContentTest: any[] = [];
+  fileContentAff: any[] = [];
+  paginatedResults: any[] = [];
   displayedColumns: string[] = [];
+  chosenColumns: string[] = [];
   formulaForm: FormGroup;
   validationMessage: string = '';
   showAdditionalButtons: boolean = false;
+  pageSize: number = 100;
+  pageIndex: number = 0;
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     private indexedDBService: IndexedDBService,
@@ -71,22 +80,22 @@ export class AnalyticsComponent implements OnInit {
 
   addColumnField(): void {
     const expressions = this.getExpressions(0);
-    expressions.insert(expressions.length , this.createColumnGroup());
+    expressions.insert(expressions.length, this.createColumnGroup());
   }
 
   addSignField(): void {
     const expressions = this.getExpressions(0);
-    expressions.insert(expressions.length , this.createSignGroup());
+    expressions.insert(expressions.length, this.createSignGroup());
   }
 
   addParenthesis(parenthesis: string): void {
     const expressions = this.getExpressions(0);
-    expressions.insert(expressions.length , this.createParenthesisGroup(parenthesis));
+    expressions.insert(expressions.length, this.createParenthesisGroup(parenthesis));
   }
 
   removeExpression(expressionIndex: number): void {
     const expressions = this.getExpressions(0);
-    if (expressions.length > 0) { 
+    if (expressions.length > 0) {
       expressions.removeAt(expressionIndex);
     }
   }
@@ -104,7 +113,6 @@ export class AnalyticsComponent implements OnInit {
       } else if (control.get('sign')) {
         const sign = control.get('sign')?.value;
         if (sign === '-') {
-          // Allow negative sign after another sign
           expectingColumn = false;
         } else if (expectingColumn) {
           isValid = false;
@@ -131,155 +139,75 @@ export class AnalyticsComponent implements OnInit {
     return isValid && openParentheses === 0;
   }
 
-  parseAndCompute(expressionParts: any[], row: any): number {
-    let stack: any[] = [];
-    let postfix: any[] = [];
-
-    // Convert infix expression to postfix expression
-    for (let part of expressionParts) {
-      if (typeof part === 'number' || part.match(/^[A-Za-z]+$/)) {
-        postfix.push(part);
-      } else if (part === '(') {
-        stack.push(part);
-      } else if (part === ')') {
-        while (stack.length && stack[stack.length - 1] !== '(') {
-          postfix.push(stack.pop());
-        }
-        stack.pop();
-      } else {
-        while (stack.length && this.getPrecedence(part) <= this.getPrecedence(stack[stack.length - 1])) {
-          postfix.push(stack.pop());
-        }
-        stack.push(part);
-      }
-    }
-
-    while (stack.length) {
-      postfix.push(stack.pop());
-    }
-
-    // Evaluate postfix expression
-    let resultStack: number[] = [];
-    for (let part of postfix) {
-      if (typeof part === 'number') {
-        resultStack.push(part);
-      } else if (part.match(/^[A-Za-z]+$/)) {
-        const value = parseFloat(row[part]);
-        if (!isNaN(value)) {
-          resultStack.push(value);
-        } else {
-          throw new Error(`Invalid value for column: ${part}`);
-        }
-      } else {
-        const b = resultStack.pop();
-        const a = resultStack.pop();
-
-        if (a === undefined || b === undefined) {
-          throw new Error(`Invalid arithmetic operation with undefined operands`);
-        }
-
-        switch (part) {
-          case '+':
-            resultStack.push(a + b);
-            break;
-          case '-':
-            resultStack.push(a - b);
-            break;
-          case '*':
-            resultStack.push(a * b);
-            break;
-          case '/':
-            if (b === 0) {
-              throw new Error(`Division by zero`);
-            }
-            resultStack.push(a / b);
-            break;
-          default:
-            throw new Error(`Unknown operator: ${part}`);
-        }
-      }
-    }
-
-    const result = resultStack.pop();
-    if (result === undefined) {
-      throw new Error(`Failed to compute result`);
-    }
-    return result;
-  }
-
-  getPrecedence(op: string): number {
-    switch (op) {
-      case '+':
-      case '-':
-        return 1;
-      case '*':
-      case '/':
-        return 2;
-      default:
-        return 0;
-    }
-  }
-
   onSubmit(): void {
     const expressions = this.getExpressions(0);
-    const equationParts: any[] = [];
-    const chosenColumns: string[] = [];
-  
+    const columns: string[] = [];
+    let expressionStr = '';
+
     for (let i = 0; i < expressions.length; i++) {
       const control = expressions.at(i);
       if (control.get('column')) {
         const column = control.get('column')?.value;
-        if (column) {
-          equationParts.push(column);
-          if (!chosenColumns.includes(column)) {
-            chosenColumns.push(column);
-          }
-        }
+        columns.push(column);
+        expressionStr += `data["${column}"]`;
       } else if (control.get('sign')) {
-        equationParts.push(control.get('sign')?.value);
+        expressionStr += ` ${control.get('sign')?.value} `;
       } else if (control.get('parenthesis')) {
-        equationParts.push(control.get('parenthesis')?.value);
+        expressionStr += control.get('parenthesis')?.value;
       }
     }
-  
+
     if (this.isValidMathExpression()) {
       this.validationMessage = 'Valid expression';
       this.showAdditionalButtons = true;
-  
-      this.displayedColumns = [...chosenColumns, 'Result'];
-  
-      // Evaluate the equation for each row
-      this.fileContentTest.forEach((row) => {
+      this.chosenColumns = columns;
+
+      console.log('Expression:', expressionStr);
+      console.log('Chosen columns:', columns);
+
+      this.fileContentAff = this.fileContentTest[0].slice(1).map((row: any[]) => {
+        const data: any = {};
+        columns.forEach(column => {
+          const columnIndex = this.displayedColumns.indexOf(column);
+          data[column] = row[columnIndex];
+        });
         try {
-          const result = this.parseAndCompute(equationParts, row);
-          row['Result'] = result;
+          data.result = eval(expressionStr);
         } catch (error) {
-          if (error instanceof Error) {
-            console.error(error);
-            this.validationMessage = `Error: ${error.message}`;
-          } else {
-            console.error('Unexpected error', error);
-            this.validationMessage = 'Unexpected error occurred';
-          }
-          this.showAdditionalButtons = false;
+          data.result = 'Error';
         }
+        return data;
       });
+
+      this.paginateResults();
     } else {
       this.validationMessage = 'Invalid expression';
       this.showAdditionalButtons = false;
+      this.fileContentAff = [];
     }
   }
 
-  
-  
+  paginateResults(): void {
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedResults = this.fileContentAff.slice(startIndex, endIndex);
+  }
+
+  pageChanged(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.paginateResults();
+  }
 
   addCreatedColumn(): void {
-    // Add your logic to handle adding the created column
+    // Logic to add a created column
   }
 
   clearForm(): void {
     this.formulaForm.reset();
     this.showAdditionalButtons = false;
-    this.validationMessage = '';
+    this.chosenColumns = [];
+    this.fileContentAff = [];
+    this.paginatedResults = [];
   }
 }

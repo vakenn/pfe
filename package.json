@@ -26,9 +26,11 @@
     "express": "^4.18.2",
     "flask": "^0.2.10",
     "idb": "^8.0.0",
+    "mathjs": "^13.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5",
+    "yaml": "^2.4.5",
     "zone.js": "~0.14.3"
   },
   "devDependencies": {

@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "password": "15dzq"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "password": "zzqa55"
+    },
+    {
+      "id": 3,
+      "name": "Mike Johnson",
+      "password": "dsq584dsds"
+    }
+  ]
+}

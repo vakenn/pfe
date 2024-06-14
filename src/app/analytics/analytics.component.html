@@ -38,19 +38,24 @@
       <button class="form-button" type="button" (click)="addCreatedColumn()">Add Created Column</button>
       <button class="form-button" type="button" (click)="clearForm()">Clear</button>
     </div>
-    <div *ngIf="fileContentTest.length > 0">
-      <table mat-table [dataSource]="fileContentTest">
-        <ng-container *ngFor="let column of displayedColumns" [matColumnDef]="column">
-          <th mat-header-cell *matHeaderCellDef>{{ column }}</th>
-          <td mat-cell *matCellDef="let element">{{ element[column] }}</td>
-        </ng-container>
-        <ng-container matColumnDef="Result">
-          <th mat-header-cell *matHeaderCellDef>Result</th>
-          <td mat-cell *matCellDef="let element">{{ element[element.length - 1] }}</td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="displayedColumns.concat(['Result'])"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns.concat(['Result']);"></tr>
-      </table>
-    </div>
   </form>
+
+  <div *ngIf="chosenColumns.length > 0">
+    <h2>Chosen Columns</h2>
+    <table>
+      <thead>
+        <tr>
+          <th *ngFor="let column of chosenColumns">{{ column }}</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of paginatedResults">
+          <td *ngFor="let column of chosenColumns">{{ row[column] }}</td>
+          <td>{{ row.result }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <mat-paginator [length]="fileContentAff.length" [pageSize]="100" (page)="pageChanged($event)"></mat-paginator>
+  </div>
 </div>
