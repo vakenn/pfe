@@ -34,7 +34,7 @@ export class RegisterComponent {
   onSubmit(): void {
     if (this.registerForm.valid) {
       const { username, password } = this.registerForm.value;
-      if (this.authService.register(username)) {
+      if (this.authService.register(username,password)) {
         this.router.navigate(['/login']);
       } else {
         this.errorMessage = 'Registration failed. Username may already be taken.';

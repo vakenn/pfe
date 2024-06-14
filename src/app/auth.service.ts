@@ -1,56 +1,73 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
+import { User } from './models/user.model'; 
+
+function wait(seconds: number): Promise<void> {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, seconds * 500); 
+  });
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private usersUrl = 'assets/users.json';
+  public users: User[] = [];
 
-  private usersUrl = 'assets/users.json'; // Path to your users.json file
-  private registerUrl = '/register'; 
-  private loginUrl = '/login'; 
-  constructor(private http: HttpClient) { }
-
-
-  getUsers(): Observable<any[]> {
-    return this.http.get<any[]>(this.usersUrl);
+  constructor(private http: HttpClient) {
+    this.loadUsers();
+    wait(1).then(() => {
+      console.log('Users in auth:', this.users);
+      
+    });
   }
-
-
-  register(userData: any): Observable<any> {
-    return this.http.get<any[]>(this.usersUrl).pipe(
-      map(users => {
-        const newUser = {
-          id: users.length + 1,
-          ...userData
-        };
-        users.push(newUser); 
-        return { success: true };
-      }),
-      catchError(error => {
-        console.error('Failed to register user', error);
-        return of({ success: false, error });
+  
+  private loadUsers(): void {
+    console.log('Fetching users...');
+    this.http.get<{ users: any[] }>(this.usersUrl).pipe(
+      map(data => {
+        console.log('Data fetched:', data);
+        this.users = data.users.map(user => new User(user.id, user.name, user.password));
+        console.log('Mapped users:', this.users);
+        return this.users;
       })
+    ).subscribe(
+      users => {
+        this.users = users;
+        console.log('Users loaded:', this.users);
+      },
+      error => {
+        console.error('Error loading users:', error);
+      }
     );
   }
 
+  getUsers(): Observable<User[]> {
+    return of(this.users);
+  }
 
-  login(username: any, userpwd: any): Observable<any> {
-    return this.http.get<any[]>(this.usersUrl).pipe(
-      map(users => {
-        const user = users.find(u => u.name === username && u.password === userpwd);
-        if (user) {
-          return { success: true, user };
-        } else {
-          return { success: false, error: 'User not found or incorrect password' };
-        }
-      }),
-      catchError(error => {
-        console.error('Failed to authenticate user', error);
-        return of({ success: false, error });
-      })
+  login(username: string, password: string): boolean {
+    const user = this.users.find(u => u.name === username && u.password === password);
+    return !!user;
+  }
+
+  register(name: string, password: string): Observable<User> {
+    const newUser = new User(this.users.length + 1, name, password);
+    this.users.push(newUser);
+    console.log('Updated users:', this.users);
+    this.saveUsers().subscribe(
+      () => console.log('Users saved successfully'),
+      error => console.error('Error saving users:', error)
     );
+    return of(newUser);
+  }
+
+  private saveUsers(): Observable<any> {
+    return this.http.put(this.usersUrl, { users: this.users });
   }
 }
