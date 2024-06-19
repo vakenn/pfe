@@ -5,6 +5,7 @@ import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tables',
@@ -27,9 +28,17 @@ export class TablesComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator: MatPaginator | undefined;
 
-  constructor(private indexedDBService: IndexedDBService) {}
+  constructor(private indexedDBService: IndexedDBService,
+    private router: Router) {}
 
   async ngOnInit(): Promise<void> {
+    const username: string | null = sessionStorage.getItem('user');
+    if (username !== null) {
+      console.log(`Username is ${username}`);
+    } else {
+      this.router.navigate(['/login']);
+    }
+
     const fileContent: string | null | undefined = await this.indexedDBService.getItem('extractedData');
     if (fileContent !== undefined && fileContent !== null) {
       this.fileContentTest = JSON.parse(fileContent);
@@ -43,7 +52,8 @@ export class TablesComponent implements OnInit {
   updateDataSource(): void {
     const startIndex = this.currentPage * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    const pageData = this.fileContentTest[0].slice(startIndex, endIndex);
+    const dataWithoutHeaders = this.fileContentTest[0].slice(1); // Skip the first element (headers)
+    const pageData = dataWithoutHeaders.slice(startIndex, endIndex);
     this.fileContentAff = pageData;
   }
 

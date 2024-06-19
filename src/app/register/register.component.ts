@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators,ReactiveFormsModule  } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule  } from '@angular/common/http';
@@ -13,7 +13,8 @@ import { HttpClientModule  } from '@angular/common/http';
   imports: [
     ReactiveFormsModule,
     CommonModule,
-    HttpClientModule
+    HttpClientModule,
+    RouterModule
   ]
 })
 export class RegisterComponent {
@@ -30,15 +31,18 @@ export class RegisterComponent {
       password: ['', Validators.required]
     });
   }
-  
+
   onSubmit(): void {
     if (this.registerForm.valid) {
       const { username, password } = this.registerForm.value;
-      if (this.authService.register(username,password)) {
-        this.router.navigate(['/login']);
-      } else {
-        this.errorMessage = 'Registration failed. Username may already be taken.';
-      }
+      this.authService.register(username, password).subscribe(
+        () => {
+          this.router.navigate(['/login']);
+        },
+        error => {
+          this.errorMessage = 'Registration failed. Username may already be taken.';
+        }
+      );
     }
   }
 }

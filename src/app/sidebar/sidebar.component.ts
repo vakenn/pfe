@@ -11,4 +11,9 @@ import { RouterModule } from '@angular/router';
 })
 export class SidebarComponent {
   @Input() isVisible = false;
+
+  logout() {
+    sessionStorage.clear();
+    window.location.reload();
+  }
 }

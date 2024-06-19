@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as XLSX from 'xlsx';
 import { IndexedDBService } from "../indexed-db.service";
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -11,9 +12,23 @@ import { IndexedDBService } from "../indexed-db.service";
 })
 export class HomeComponent {
   selectedFile: File | null = null;
+  i:number = 0;
 
-  constructor(private indexedDBService: IndexedDBService) {}
 
+  newdata: any[] = [];
+
+  constructor(private indexedDBService: IndexedDBService,
+    private router: Router) {
+  }
+  async ngOnInit(): Promise<void> {
+
+    const username: string | null = sessionStorage.getItem('user');
+    if (username !== null) {
+      console.log(`Username is ${username}`);
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -31,6 +46,7 @@ export class HomeComponent {
         reader.onload = async () => {
           const fileContent = reader.result as string;
           const extractedData = extractData(fileContent, extension);
+          console.log('this is the :');
           console.log(extractedData);
           await this.indexedDBService.setItem('extractedData', JSON.stringify(extractedData));
         };

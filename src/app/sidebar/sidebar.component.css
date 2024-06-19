@@ -25,11 +25,23 @@ li {
   display: block;
 }
 
-a {
+a , button{
   text-decoration: double;
   color: #004876;
   font-weight: bold;
   font-size: 120%;
   display: block;
   text-align: center;
+}
+
+
+button {
+  font-weight: bold;
+  cursor: pointer;
+  background: none;
+  border: none;
+  outline: none;
+  text-align: left;
+  margin-top: 180%;
+  margin-left: 40%;
 }

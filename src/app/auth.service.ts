@@ -16,23 +16,22 @@ function wait(seconds: number): Promise<void> {
   providedIn: 'root'
 })
 export class AuthService {
-  private usersUrl = 'assets/users.json';
+  private usersUrl = 'http://localhost:5000/api/users'; 
   public users: User[] = [];
 
   constructor(private http: HttpClient) {
     this.loadUsers();
     wait(1).then(() => {
       console.log('Users in auth:', this.users);
-      
     });
   }
-  
+
   private loadUsers(): void {
     console.log('Fetching users...');
     this.http.get<{ users: any[] }>(this.usersUrl).pipe(
       map(data => {
         console.log('Data fetched:', data);
-        this.users = data.users.map(user => new User(user.id, user.name, user.password));
+        this.users = data.users.map(user => new User(user.id, user.email, user.password));
         console.log('Mapped users:', this.users);
         return this.users;
       })
@@ -52,7 +51,7 @@ export class AuthService {
   }
 
   login(username: string, password: string): boolean {
-    const user = this.users.find(u => u.name === username && u.password === password);
+    const user = this.users.find(u => u.email === username && u.password === password);
     return !!user;
   }
 

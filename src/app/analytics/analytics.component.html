@@ -30,6 +30,7 @@
           </ng-container>
         </div>
         <button type="button" (click)="removeExpression(getExpressions(0).length - 1)" style="margin-left: 10px;">Remove</button>
+        <input id="newCol" name="newCol" style="margin-left: 10px;">
       </div>
     </div>
     <button class="form-button" type="submit">Submit</button>
@@ -46,7 +47,7 @@
       <thead>
         <tr>
           <th *ngFor="let column of chosenColumns">{{ column }}</th>
-          <th>Result</th>
+          <th>{{ this.var }}</th>
         </tr>
       </thead>
       <tbody>

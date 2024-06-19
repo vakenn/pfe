@@ -6,6 +6,9 @@
 /out-tsc
 /bazel-out
 
+
+#python modules
+/venv
 # Node
 /node_modules
 npm-debug.log
@@ -42,3 +45,4 @@ testem.log
 Thumbs.db
 venv/Lib/site-packages/markupsafe/_speedups.cp311-win_amd64.pyd
 venv/Scripts/python.exe
+src/assets/osconf.py
