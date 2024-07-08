@@ -15,7 +15,7 @@ oracledb.init_oracle_client(lib_dir=r"C:\oracle\instantclient_21_14")
 app = Flask(__name__)
 
 # Configure the SQLALCHEMY_DATABASE_URI with your Oracle database URL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'oracle+oracledb://HR:HR@localhost:1521/XE'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'oracle+oracledb://system:system@localhost:1521/XE'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
@@ -182,8 +182,7 @@ def create_dynamic_table(table_name, sample_data):
     
     dynamic_table = Table(table_name, metadata, *columns)
     metadata.create_all(db.engine)
-
-
+    
 def insert_data_into_table(engine, table_name, data):
     print(data)
     print('\n\n\n\n\n\n\n')

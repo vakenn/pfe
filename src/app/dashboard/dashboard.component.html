@@ -1,1 +1,34 @@
-<p>dashboard works!</p>
+<form *ngIf="chartForm" [formGroup]="chartForm">
+    <label>Number of Charts:</label>
+    <input type="number" formControlName="numberOfGraphs">
+    
+    <div formArrayName="graphForms">
+      <div *ngFor="let graphFormGroup of graphForms.controls; let i = index" [formGroupName]="i">
+        <fieldset>
+          <legend>Chart {{ i + 1 }}</legend>
+  
+          <label>Chart Type:</label>
+          <select formControlName="chartType">
+            <option *ngFor="let mapping of graphTypeColumnMapping" [value]="mapping.chartType">
+              {{ mapping.chartType }}
+            </option>
+          </select>
+  
+          <div formArrayName="columns">
+            <div *ngFor="let column of graphFormGroup.get('columns')?.value; let j = index">
+                <label>Column Name {{ j + 1 }}:</label>
+                <select formControlName="j">
+                  <option *ngFor="let column of displayedColumns" [value]="column">{{ column }}</option>
+                </select>
+            </div>
+          </div>
+  
+          <!-- Button to create graph -->
+          <button  (click)="createGraph(i)">Create Graph</button>
+        </fieldset>
+      </div>
+    </div>
+  </form>
+  
+  <figure id="bar"></figure>
+  
