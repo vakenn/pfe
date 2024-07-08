@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as XLSX from 'xlsx';
 import { IndexedDBService } from "../indexed-db.service";
 import { Router } from '@angular/router';
+import { FileUploadService } from '../file-upload.service';
 
 
 @Component({
@@ -18,7 +19,8 @@ export class HomeComponent {
   newdata: any[] = [];
 
   constructor(private indexedDBService: IndexedDBService,
-    private router: Router) {
+    private router: Router,
+    private fileUploadService: FileUploadService) {
   }
   async ngOnInit(): Promise<void> {
 
@@ -42,21 +44,16 @@ export class HomeComponent {
       const allowedExtensions = ['csv', 'xml', 'json', 'xlsx', 'xls', 'txt'];
       const extension = this.selectedFile.name.split('.').pop() ?? '';
       if (allowedExtensions.includes(extension)) {
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const fileContent = reader.result as string;
-          const extractedData = extractData(fileContent, extension);
-          console.log('this is the :');
-          console.log(extractedData);
-          await this.indexedDBService.setItem('extractedData', JSON.stringify(extractedData));
-        };
-
-        if (['xlsx', 'xls'].includes(extension)) {
-          reader.readAsBinaryString(this.selectedFile);
-        } else {
-          reader.readAsText(this.selectedFile);
-        }
-        
+        this.fileUploadService.uploadFile(this.selectedFile).subscribe(
+          response => {
+            console.log('File upload response:', response);
+            // You can store the extracted data in IndexedDB or use it directly
+            // await this.indexedDBService.setItem('extractedData', JSON.stringify(response.data));
+          },
+          error => {
+            console.error('File upload error:', error);
+          }
+        );
         const erreurType = document.getElementById("erreurType");
         if (erreurType) {
           erreurType.innerHTML = "";
@@ -71,7 +68,6 @@ export class HomeComponent {
     }
   }
 }
-
 function extractData(fileContent: string, fileType: string): any[] | any[][] {
   switch (fileType) {
     case 'csv':

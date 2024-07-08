@@ -4,7 +4,8 @@ import xml.etree.ElementTree as ET
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from sqlalchemy import inspect, Sequence, Table, Column, Integer, String, MetaData
+from sqlalchemy import  Float, inspect, Sequence, Table, Column, Integer, String, MetaData,exc
+from sqlalchemy.engine import Engine
 import oracledb
 import json
 
@@ -117,7 +118,7 @@ def upload_file():
     create_dynamic_table(table_name, extracted_data[0])
 
     # Insert extracted data into the new table
-    insert_data_into_table(table_name, extracted_data)
+    insert_data_into_table(db.engine,table_name, extracted_data)
 
     return jsonify({'message': 'File uploaded and data inserted successfully'}), 201
 
@@ -168,17 +169,35 @@ def create_dynamic_table(table_name, sample_data):
     columns = [Column('id', Integer, primary_key=True)]
     
     for key, value in sample_data.items():
-        column_type = String if isinstance(value, str) else Integer  # Add more types as needed
+        if isinstance(value, str):
+            column_type = String(255)  # Default to 255 characters, adjust as needed
+        elif isinstance(value, int):
+            column_type = Integer
+        elif isinstance(value, float):
+            column_type = Float
+        else:
+            column_type = String(255)  # Default for unknown types
+        
         columns.append(Column(key, column_type))
     
     dynamic_table = Table(table_name, metadata, *columns)
     metadata.create_all(db.engine)
 
-def insert_data_into_table(table_name, data):
-    metadata = MetaData(bind=db.engine)
-    table = Table(table_name, metadata, autoload_with=db.engine)
-    with db.engine.connect() as connection:
-        connection.execute(table.insert(), data)
+
+def insert_data_into_table(engine, table_name, data):
+    print(data)
+    print('\n\n\n\n\n\n\n')
+    metadata = MetaData()
+    try:
+        table = Table(table_name, metadata, autoload_with=engine)
+    except exc.InvalidRequestError:
+        raise ValueError(f"Invalid table name {table_name} or connection issue")
+
+    with engine.connect() as conn:
+        try:
+            conn.execute(table.insert(), data)
+        except Exception as e:
+            raise ValueError(f"Failed to insert data into table {table_name}: {str(e)}")
 
 
 if __name__ == '__main__':
