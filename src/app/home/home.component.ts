@@ -44,16 +44,28 @@ export class HomeComponent {
       const allowedExtensions = ['csv', 'xml', 'json', 'xlsx', 'xls', 'txt'];
       const extension = this.selectedFile.name.split('.').pop() ?? '';
       if (allowedExtensions.includes(extension)) {
-        this.fileUploadService.uploadFile(this.selectedFile).subscribe(
-          response => {
-            console.log('File upload response:', response);
-            // You can store the extracted data in IndexedDB or use it directly
-            // await this.indexedDBService.setItem('extractedData', JSON.stringify(response.data));
-          },
-          error => {
-            console.error('File upload error:', error);
-          }
-        );
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const fileContent = reader.result as string;
+          const extractedData = extractData(fileContent, extension);
+          await this.fileUploadService.test(extractedData).subscribe(
+            response => {
+              console.log('File upload response:', response);
+              // You can store the extracted data in IndexedDB or use it directly
+              // await this.indexedDBService.setItem('extractedData', JSON.stringify(response.data));
+            },
+            error => {
+              console.error('File upload error:', error);
+            }
+          );
+        };
+
+        if (['xlsx', 'xls'].includes(extension)) {
+          reader.readAsBinaryString(this.selectedFile);
+        } else {
+          reader.readAsText(this.selectedFile);
+        }
+        
         const erreurType = document.getElementById("erreurType");
         if (erreurType) {
           erreurType.innerHTML = "";

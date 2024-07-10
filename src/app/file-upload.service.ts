@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class FileUploadService {
   private apiUrl = 'http://localhost:5000/api/upload';
+  private apiUrlT = 'http://localhost:5000/api/insert_dynamic';
 
   constructor(private http: HttpClient) {}
 
@@ -17,5 +18,12 @@ export class FileUploadService {
     const headers = new HttpHeaders();
 
     return this.http.post<any>(this.apiUrl, formData, { headers });
+  }
+
+  test(file: any[]): Observable<any> {
+    console.log('file', file);
+
+    const headers = new HttpHeaders();
+    return this.http.post<any>(this.apiUrlT,file, { headers });
   }
 }

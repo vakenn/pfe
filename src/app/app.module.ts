@@ -20,9 +20,10 @@ import { routes } from './app.routes';
 @NgModule({
     declarations: [
       HomeComponent,
-      DashboardComponent,
+      
     ],
     imports: [
+      DashboardComponent,
       LoginComponent,
       RegisterComponent,
       AppComponent,
