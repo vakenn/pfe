@@ -5,10 +5,9 @@ from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS, cross_origin
 import json
-
 # Switch to thick mode
 import oracledb
-from sqlalchemy import Column, Float, Integer, MetaData, String, Table  # Ensure correct import of oracledb
+from sqlalchemy import Column, Float, Integer, MetaData, String, Table, text ,Table, select  # Ensure correct import of oracledb
 oracledb.init_oracle_client(lib_dir=r"C:\oracle\instantclient_21_14")
 
 app = Flask(__name__)
@@ -23,7 +22,6 @@ db = SQLAlchemy(app)
 # Enable CORS for all routes
 CORS(app)
 CORS(app, origins='http://localhost:4200')
-
 
 # Define User model
 class User(db.Model):
@@ -92,8 +90,7 @@ def upload_file():
         return jsonify({'error': 'No data extracted from the file'}), 400
 
     table_name = 'dynamic_table'  # Replace with your actual table name
-    create_dynamic_table(table_name, extracted_data[5])
-    print('hey : ',extracted_data[5])
+    create_dynamic_table(table_name, extracted_data[0])  # Assuming extracted_data is a list of dictionaries
     insert_data_into_table(db.engine, table_name, extracted_data)
 
     return jsonify({'message': 'File uploaded and data inserted successfully'}), 201
@@ -180,7 +177,6 @@ def formatdata(data):
 
 # Function to insert data into dynamically created table
 def insert_data_into_table(engine, table_name, data):
-    
     metadata = MetaData()
     try:
         table = Table(table_name, metadata, autoload_with=engine)
@@ -197,28 +193,36 @@ def insert_data_into_table(engine, table_name, data):
         except Exception as e:
             raise ValueError(f"Failed to insert data into table {table_name}: {str(e)}")
 
-
-@app.route('/api/insert_dynamic', methods=['POST'])
-@cross_origin(origin='http://localhost:4200')
-def insert_into_dynamic_table():
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'}), 200
-    if request.content_type != 'application/json':
-        return jsonify({'error': 'Content-Type must be application/json'}), 415
-
-    data = request.get_json()
-    data = data[0]
-    if not data:
-        return jsonify({'error': 'No JSON data provided'}), 415
+@app.route('/api/get_column_names', methods=['GET'])
+@cross_origin(origin='http://localhost:5000')
+def get_column_names():
+    metadata = MetaData()
+    dynamic_table = Table('dynamic_table', metadata, autoload_with=db.engine)
 
     try:
-        table_name = 'dynamic_table' # Replace 'dynamic_table' with your actual table name if needed
-        dataCreation=formatdata(data)
-        create_dynamic_table(table_name, dataCreation[5])
-        insert_data_into_table(db.engine, table_name, data)
-        return jsonify({'message': f'Data inserted successfully into {table_name}'}), 201
-    except ValueError as ve:
-        return jsonify({'error': str(ve)}), 500
+        columns = dynamic_table.columns.keys()
+        return jsonify({'columns': list(columns)})
+    except Exception as e:
+        return jsonify({'error': f'Failed to fetch column names: {str(e)}'}), 500
+
+
+@app.route('/api/get_column_data', methods=['GET'])
+@cross_origin(origin='http://localhost:5000')
+def get_column_data():
+    column_name = request.args.get('column_name')
+
+    if not column_name:
+        return jsonify({'error': 'Column name parameter is required'}), 400
+
+    # Construct a query to fetch the selected column data from 'dynamic_table'
+    query = text(f"SELECT {column_name} FROM dynamic_table")
+    with db.engine.connect() as conn:
+        try:
+            result = conn.execute(query)
+            column_data = [row[0] for row in result.fetchmany(10)]  # Fetch first 10 rows
+            return jsonify(column_data)
+        except Exception as e:
+            return jsonify({'error': f'Failed to fetch data for column {column_name}: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)  # Use a production-ready WSGI server in production
+    app.run(debug=True)

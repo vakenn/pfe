@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } fr
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-analytics',
@@ -15,6 +16,7 @@ import { Router } from '@angular/router';
     CommonModule,
     ReactiveFormsModule,
     MatTableModule,
+    MatButtonModule,
     MatPaginatorModule
   ]
 })
@@ -213,7 +215,7 @@ export class AnalyticsComponent implements OnInit {
   }
 
   addCreatedColumn(): void {
-    const newColumnName =this.var;  
+    const newColumnName = this.var;  
     this.displayedColumns.push(newColumnName);
   
     this.fileContentTest[0].forEach((row: any[], rowIndex: number) => {
@@ -255,7 +257,6 @@ export class AnalyticsComponent implements OnInit {
     return expressionStr;
   }
   
-
   clearForm(): void {
     this.formulaForm.reset();
     this.showAdditionalButtons = false;
