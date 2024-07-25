@@ -101,31 +101,44 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-  onColumnNameSelected(event: Event) {
+  onColumnNameSelected(event: Event, columnIndex: number) {
     const selectedValue = (event.target as HTMLSelectElement).value;
-    if (selectedValue) {
+    const graphFormGroup = this.graphForms.at(0) as FormGroup;
+  
+    if (columnIndex === 0) {
+      // Handle the first column (x-axis)
       this.http.get<any[]>(`http://localhost:5000/api/get_column_data?column_name=${selectedValue}`).subscribe(
         (data) => {
-          if (this.columnData.length === 0) {
-            this.columnData = data.map((d, index) => ({
-              Framework: `Item ${index + 1}`,
-              Stars: data[index] || 0
-            }));
-          } else if (this.columnData.length == 10) {
-            this.columnData.push(...data.map((d, index) => ({
-              Framework: `Item ${this.columnData.length + index + 1}`,
-              Stars: data[index] || 0
-            })));
-          }
-          console.log('Processed Column data:', this.columnData);
+          this.columnData = data.map((d, index) => ({
+            xValue: `Item ${index + 1}`,
+            xData: d
+          }));
+          console.log('X-Axis Data:', this.columnData);
           this.updateChart();
         },
         (error) => {
-          console.error('Error fetching column data:', error);
+          console.error('Error fetching x-axis column data:', error);
+        }
+      );
+    } else if (columnIndex === 1) {
+      // Handle the second column (y-axis)
+      this.http.get<any[]>(`http://localhost:5000/api/get_column_data?column_name=${selectedValue}`).subscribe(
+        (data) => {
+          this.columnData = this.columnData.map((d, index) => ({
+            ...d,
+            yData: data[index] || 0
+          }));
+          console.log('Y-Axis Data:', this.columnData);
+          this.updateChart();
+        },
+        (error) => {
+          console.error('Error fetching y-axis column data:', error);
         }
       );
     }
   }
+  
+  
   
 
   updateGraphForms(numberOfGraphs: number) {
@@ -232,143 +245,163 @@ updateChart() {
 }
 
   
-  private createSvg(containerId: string): void {
-    const container = d3.select(`#${containerId}`);
-    
-    this.svg = container.append("svg")
-      .attr("width", this.width + (this.margin * 2))
-      .attr("height", this.height + (this.margin * 2))
-      .append("g")
-      .attr("transform", "translate(" + this.margin + "," + this.margin + ")");
-  }
+private createSvg(containerId: string): void {
+  // Clear previous SVG
+  d3.select(`#${containerId}`).select("svg").remove();
+
+  this.svg = d3.select(`#${containerId}`)
+    .append("svg")
+    .attr("width", this.width + this.margin * 2)
+    .attr("height", this.height + this.margin * 2)
+    .append("g")
+    .attr("transform", `translate(${this.margin}, ${this.margin})`);
+}
+  
   
 
-  private createBarChart(index: number): void {
-    const containerId = `bar-chart-${index}`;
+  
+private createBarChart(index: number): void {
+  const containerId = `bar-chart-${index}`;
+  this.createSvg(containerId); // Ensure this initializes this.svg
+  this.drawBars(this.columnData);
+}
+  
+private drawBars(data: { xValue: string, xData: number, yData: number }[]): void {
+  if (!data || data.length === 0) return;
+
+  // Create scales
+  const x = d3.scaleBand()
+    .range([0, this.width])
+    .domain(data.map(d => d.xValue))
+    .padding(0.2);
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.yData) || 0])
+    .range([this.height, 0]);
+
+  // Append x-axis
+  this.svg.append("g")
+    .attr("transform", `translate(0,${this.height})`)
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .attr("transform", "translate(-10,0)rotate(-45)")
+    .style("text-anchor", "end");
+
+  // Append y-axis
+  this.svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // Draw bars
+  this.svg.selectAll("rect")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("x", (d: any) => x(d.xValue)!)
+    .attr("y", (d: any) => y(d.yData)!)
+    .attr("width", x.bandwidth())
+    .attr("height", (d: any) => this.height - y(d.yData))
+    .attr("fill", "#d04a35");
+}
+  
+
+  private createLineChart(index: number): void {
+    const containerId = `line-chart-${index}`;
     this.createSvg(containerId);
-    this.drawBars(this.columnData);
+    this.drawLineChart(this.columnData);
+  }
+  
+  private drawLineChart(data: { xValue: string, xData: number, yData: number }[]): void {
+    if (!data || data.length === 0) return;
+  
+    // Sort data by xData
+    data.sort((a, b) => a.xData - b.xData);
+  
+    // Create scales
+    const x = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d.xData) || 0])
+      .range([0, this.width]);
+  
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d.yData) || 0])
+      .range([this.height, 0]);
+  
+    // Draw x-axis
+    this.svg.append("g")
+      .attr("transform", `translate(0,${this.height})`)
+      .call(d3.axisBottom(x));
+  
+    // Draw y-axis
+    this.svg.append("g")
+      .call(d3.axisLeft(y));
+  
+    // Create the line function
+    const line = d3.line<{ xData: number, yData: number }>()
+      .x(d => x(d.xData))
+      .y(d => y(d.yData));
+  
+    // Draw the line
+    this.svg.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "#69b3a2")
+      .attr("stroke-width", 1.5)
+      .attr("d", line);
   }
 
-  private drawBars(data: any[]): void {
+  private createMultiSeriesLineChart(index: number): void {
+    const containerId = `multi_series_line_chart-${index}`;
+    this.createSvg(containerId);
+    this.drawMultiSeriesLineChart(this.columnData);
+  }
+  private drawMultiSeriesLineChart(data: { Framework: string, Stars: number, Series: string }[]): void {
     if (!data || data.length === 0) return;
-
-    const x = d3.scaleBand()
+  
+    // Define the x and y scales
+    const x = d3.scaleBand<string>()
       .range([0, this.width])
-      .domain(data.map(d => d.Framework))
+      .domain(Array.from(new Set(data.map(d => d.Framework)))) // Unique Framework values
       .padding(0.2);
-
+  
     const y = d3.scaleLinear()
-      .domain([0, d3.max(data.map(d => d.Stars)) || 0])
+      .domain([0, d3.max(data, d => d.Stars) || 0])
       .range([this.height, 0]);
-
+  
+    // Define color scale for different series
+    const color = d3.scaleOrdinal<string>(d3.schemeCategory10);
+  
+    // Group data by series
+    const seriesData = d3.group(data, d => d.Series);
+  
+    // Define the line generator
+    const line = d3.line<{ Framework: string, Stars: number }>()
+      .x((d: { Framework: string, Stars: number }) => x(d.Framework) || 0)
+      .y((d: { Framework: string, Stars: number }) => y(d.Stars) || 0);
+  
+    // Draw the lines for each series
+    this.svg.selectAll(".line")
+      .data(Array.from(seriesData.entries()))
+      .enter()
+      .append("g")
+      .attr("class", "line")
+      .append("path")
+      .attr("fill", "none")
+      .attr("stroke", (d: [string, { Framework: string, Stars: number }[]]) => color(d[0])) // d[0] is the series name
+      .attr("stroke-width", 1.5)
+      .attr("d", (d: [string, { Framework: string, Stars: number }[]]) => line(d[1])); // d[1] is the array of data points
+  
+    // Draw the x and y axes
     this.svg.append("g")
-      .attr("transform", "translate(0," + this.height + ")")
+      .attr("transform", `translate(0,${this.height})`)
       .call(d3.axisBottom(x))
       .selectAll("text")
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
-
+  
     this.svg.append("g")
       .call(d3.axisLeft(y));
-
-    this.svg.selectAll("bars")
-      .data(data)
-      .enter()
-      .append("rect")
-      .attr("x", (d: any) => x(d.Framework))
-      .attr("y", (d: any) => y(d.Stars))
-      .attr("width", x.bandwidth())
-      .attr("height", (d: any) => this.height - y(d.Stars))
-      .attr("fill", "#d04a35");
   }
-
   
-    private createLineChart(index: number): void {
-      const containerId = `line-chart-${index}`;
-      this.createSvg(containerId);
-      this.drawLineChart(this.columnData);
-    }
-
-    private drawLineChart(data: any[]): void {
-      if (!data || data.length === 0) return;
-    
-      const x = d3.scaleBand()
-        .range([0, this.width])
-        .domain(data.map(d => d.Framework))
-        .padding(0.2);
-    
-      const y = d3.scaleLinear()
-        .domain([0, d3.max(data.map(d => d.Stars)) || 0])
-        .range([this.height, 0]);
-    
-      this.svg.append("g")
-        .attr("transform", "translate(0," + this.height + ")")
-        .call(d3.axisBottom(x))
-        .selectAll("text")
-        .attr("transform", "translate(-10,0)rotate(-45)")
-        .style("text-anchor", "end");
-    
-      this.svg.append("g")
-        .call(d3.axisLeft(y));
-    
-      this.svg.append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "#69b3a2")
-        .attr("stroke-width", 1.5)
-        .attr("d", d3.line()
-          .x((d: any) => x(d.Framework) || 0)
-          .y((d: any) => y(d.Stars) || 0)
-        );
-    }
-    
-
-  private createMultiSeriesLineChart(index: number): void {
-      const containerId = `multi_series_line_chart-${index}`;
-      this.createSvg(containerId);
-      this.drawMultiSeriesLineChart(this.columnData);
-    }
-
-    private drawMultiSeriesLineChart(data: { Framework: string, Stars: number }[]): void {
-      if (!data || data.length === 0) return;
-    
-      const x = d3.scaleBand()
-        .range([0, this.width])
-        .domain(data.map(d => d.Framework))
-        .padding(0.2);
-    
-      const y = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.Stars) || 0])
-        .range([this.height, 0]);
-    
-      const color = d3.scaleOrdinal<string, string>(d3.schemeCategory10);
-    
-      const line = d3.line<{ Framework: string, Stars: number }>()
-        .x((d: { Framework: string, Stars: number }) => x(d.Framework) || 0)
-        .y((d: { Framework: string, Stars: number }) => y(d.Stars) || 0);
-    
-      const lines = this.svg.selectAll(".line")
-        .data([data])
-        .enter()
-        .append("g")
-        .attr("class", "line");
-    
-      lines.append("path")
-        .attr("fill", "none")
-        .attr("stroke", (d: { Framework: string, Stars: number }) => color(d.Framework))
-        .attr("stroke-width", 1.5)
-        .attr("d", line(data));
-    
-      this.svg.append("g")
-        .attr("transform", "translate(0," + this.height + ")")
-        .call(d3.axisBottom(x))
-        .selectAll("text")
-        .attr("transform", "translate(-10,0)rotate(-45)")
-        .style("text-anchor", "end");
-    
-      this.svg.append("g")
-        .call(d3.axisLeft(y));
-    }
+  
     
   
   private createStackedBarChart(index: number): void {
@@ -539,5 +572,15 @@ updateChart() {
         .style("fill", "white")
         .style("font-size", 12);
     }
+   
+   
     
 }
+
+interface DataPoint {
+  Framework: string;
+  Stars: number;
+  date?: Date;
+  [key: string]: any; // For multi-series and other additional properties
+}
+

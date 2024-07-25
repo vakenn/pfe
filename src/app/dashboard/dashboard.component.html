@@ -17,11 +17,12 @@
         <div formArrayName="columns">
           <div *ngFor="let columnControl of graphFormGroup.get('columns')?.value; let j = index">
             <label>Column Name {{ j + 1 }}:</label>
-            <select (change)="onColumnNameSelected($event)">
+            <select (change)="onColumnNameSelected($event, j)">
               <option *ngFor="let column of displayedColumns" [value]="column">{{ column }}</option>
             </select>
           </div>
         </div>
+        
 
         <!-- Button to create graph -->
         <button type="button" (click)="createGraph(i)">Create Graph</button>
