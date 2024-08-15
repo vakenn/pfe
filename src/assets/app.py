@@ -333,28 +333,28 @@ def get_table_data():
     table_name = request.args.get('table_name')
 
     if not table_name:
-        return jsonify({'error': 'Table name parameter is required'}), 400
+        return jsonify({'error': 'table_name parameter is required'}), 400
 
-    # Sanitize input
+    # Sanitize the table name
     table_name = sanitize_column_name(table_name)
+
+    # Fetch the table's columns
+    inspector = inspect(engine)
+    columns = inspector.get_columns(table_name)
+
+    column_names = [column['name'] for column in columns]
 
     # Fetch the table data
     query = text(f"SELECT * FROM {table_name}")
-
     try:
         with engine.connect() as conn:
             result = conn.execute(query)
-            
-            # Get column names
-            columns = result.keys()
-            
-            # Convert result rows to dictionaries
-            rows = [dict(zip(columns, row)) for row in result]
-            
-            return jsonify({'columns': columns, 'rows': rows})
+            # Process the result into a list of dictionaries
+            data = [dict(zip(column_names, row)) for row in result.fetchall()]
+            return jsonify(data)
     except Exception as e:
         return jsonify({'error': f'Failed to fetch data from table {table_name}: {str(e)}'}), 500
-    
+
 @app.route('/api/update_table', methods=['POST'])
 def update_table():
     data = request.get_json()

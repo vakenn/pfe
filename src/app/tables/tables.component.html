@@ -11,18 +11,20 @@
           </div>
         </div>
         <div style="overflow-x: auto;">
-          <table  class="mat-elevation-z8">
-              <thead>
-                  <th style="border: 1px solid #f59d00;" *ngFor="let column of fileContentTest[0][0]">{{ column }}</th>
-              </thead>
-              <tbody>
-                  <tr *ngFor="let row of fileContentAff">
-                    <td style="border: 1px solid #f59d00;" *ngFor="let value of row">{{ value }}</td>
-                  </tr>
-              </tbody>
+          <table class="mat-elevation-z8">
+            <thead>
+              <tr>
+                <th style="border: 1px solid #f59d00;" *ngFor="let column of displayedColumns">{{ column }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of dataSource.data">
+                <td style="border: 1px solid #f59d00;" *ngFor="let column of displayedColumns">{{ row[column] }}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
-        <mat-paginator [length]="fileContentTest[0].length" [pageSize]="pageSize" [pageSizeOptions]="[50, 100, 200]" (page)="onPageChange($event)">
+        <mat-paginator [length]="fileContentTest.length" [pageSize]="pageSize" [pageSizeOptions]="[50, 100, 200]" (page)="onPageChange($event)">
         </mat-paginator>
       </div>
     </div>

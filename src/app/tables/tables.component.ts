@@ -1,10 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { IndexedDBService } from '../indexed-db.service';
 import { CommonModule } from '@angular/common';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { HttpClient } from '@angular/common/http'; // Make sure you import HttpClient if you need to fetch data
 
 @Component({
   selector: 'app-tables',
@@ -27,29 +27,41 @@ export class TablesComponent implements OnInit {
 
   @ViewChild(MatPaginator) paginator: MatPaginator | undefined;
 
-  constructor(private indexedDBService: IndexedDBService) {}
+  constructor(private http: HttpClient) {}
 
-  async ngOnInit(): Promise<void> {
-    const fileContent: string | null | undefined = await this.indexedDBService.getItem('extractedData');
-    if (fileContent !== undefined && fileContent !== null) {
-      this.fileContentTest = JSON.parse(fileContent);
-      if (this.fileContentTest.length > 0) {
-        this.displayedColumns = this.fileContentTest[0];
-        this.updateDataSource();
+  ngOnInit(): void {
+    this.fetchTableData();
+  }
+
+  fetchTableData(): void {
+    // Replace with the actual API endpoint and parameters
+    this.http.get<any>('http://localhost:5000/api/get_table_data?table_name=ECH19042024').subscribe(
+      (data: any) => {
+        this.fileContentTest = data; // Assuming 'data' is the array of rows
+        if (this.fileContentTest.length > 0) {
+          this.displayedColumns = Object.keys(this.fileContentTest[0]);
+          this.updateDataSource();
+        }
+      },
+      error => {
+        console.error('Error fetching table data', error);
       }
-    }
+    );
   }
 
   updateDataSource(): void {
     const startIndex = this.currentPage * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    const pageData = this.fileContentTest[0].slice(startIndex, endIndex);
-    this.fileContentAff = pageData;
+    this.fileContentAff = this.fileContentTest.slice(startIndex, endIndex);
+    this.dataSource.data = this.fileContentAff;
+    if (this.paginator) {
+      this.paginator.pageIndex = this.currentPage;
+    }
   }
 
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex;
-    this.pageSize = 100;
+    this.pageSize = event.pageSize; // Adjust pageSize if needed
     this.updateDataSource();
   }
 }
