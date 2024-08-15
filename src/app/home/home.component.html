@@ -1,0 +1,33 @@
+<div class="upload-page">
+  <div class="upload-content">
+    <div class="upload-section">
+      <div class="file-drop-zone" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
+        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+        <p>Drag and drop a file here or</p>
+        <label for="file" class="file-input-label">Browse</label>
+        <input type="file" id="file" class="file-input" (change)="onFileSelected($event)" />
+      </div>
+      <div class="file-info" *ngIf="selectedFile">
+        <p>Selected file: {{ selectedFile.name }}</p>
+      </div>
+      <button mat-raised-button color="upload" (click)="onSubmit($event)" class="upload-button">Upload</button>
+      <mat-progress-bar *ngIf="isUploading" mode="determinate" [value]="progress" class="progress-bar"></mat-progress-bar>
+    </div>
+  </div>
+</div>
+
+<div class="file-dashboard-container">
+  <mat-card class="file-dashboard-card">
+    <mat-card-header>
+      <mat-card-title>Uploaded Files</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-nav-list>
+        <mat-list-item *ngFor="let file of files" class="file-item" (click)="viewFile(file.filename)">
+          <mat-icon [ngClass]="getFileIcon(file.filename.split('.').pop())"></mat-icon>
+          {{ file.filename }}
+        </mat-list-item>
+      </mat-nav-list>
+    </mat-card-content>
+  </mat-card>
+</div>

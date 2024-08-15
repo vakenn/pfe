@@ -1,0 +1,80 @@
+/* General chart styles */
+svg {
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* Arc Styles for Pie and Donut Charts */
+  .arc path {
+    transition: opacity 0.3s, stroke-width 0.3s, transform 0.3s;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  
+  /* Pie Chart Styles */
+  .pie-chart {
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .pie-chart .arc path {
+    stroke: #fff;
+    stroke-width: 2px;
+    opacity: 0.9;
+  }
+  
+  .pie-chart .arc text {
+    fill: #333;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Donut Chart Styles */
+  .donut-chart {
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .donut-chart .arc path {
+    stroke: #000;
+    stroke-width: 1px;
+    opacity: 0.9;
+  }
+  
+  .donut-chart .arc text {
+    fill: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Tooltip Styles */
+  .tooltip {
+    position: absolute;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 13px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.75) transparent transparent transparent;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    transform: translateY(-10px);
+  }
+  

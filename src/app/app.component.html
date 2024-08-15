@@ -1,0 +1,17 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="toggleSidebar()">
+    <mat-icon>{{ isSidebarVisible ? 'menu_open' : 'menu' }}</mat-icon>
+  </button>
+  <div ><span>&nbsp;&nbsp;</span>
+      <span class="title">&nbsp; <img style="max-height: 30px;" alt="BIAT"  src="/images/logo.png" >&nbsp;&nbsp;&nbsp; </span><span class="subtitle">&nbsp;&nbsp;Data Dashboarding</span>
+  </div>
+
+</mat-toolbar>
+<app-sidebar 
+  [isVisible]="isSidebarVisible" 
+  (mouseenter)="isSidebarVisible = true" 
+  (mouseleave)="isSidebarVisible = false">
+</app-sidebar>
+<div class="main-content" [class.expanded]="isSidebarVisible">
+  <router-outlet></router-outlet>
+</div>

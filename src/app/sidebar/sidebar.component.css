@@ -1,0 +1,47 @@
+.sidebar {
+  width: 20%;
+  height: 100vh;
+  position: fixed;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  background-image: url('/images/bg_biat.png');
+  background-size: 500%;
+  background-position: center;
+  overflow: hidden;
+
+}
+
+.sidebar.visible {
+  transform: translateX(0);
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  padding: 10px 20px;
+  display: block;
+}
+
+a , button{
+  text-decoration: double;
+  color: #004876;
+  font-weight: bold;
+  font-size: 120%;
+  display: block;
+  text-align: center;
+}
+
+
+button {
+  font-weight: bold;
+  cursor: pointer;
+  background: none;
+  border: none;
+  outline: none;
+  text-align: left;
+  margin-top: 180%;
+  margin-left: 40%;
+}

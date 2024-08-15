@@ -1,0 +1,30 @@
+<div class="body">
+    <div class="col-12" id="initial">
+      <div class="bg-secondary rounded h-100 p-4">
+        <div style="display: flex;">
+          <div style="flex: 50%;">
+            <h6 class="mb-4">Table</h6>
+          </div>
+          <div style="flex: 50%;margin-left: 69%;">
+            <a href="" class="btn btn-success btn-sm">Add</a>
+            <button onclick="" style="height:63%;" class="btn btn-light rounded-pill m-2">!</button>
+          </div>
+        </div>
+        <div style="overflow-x: auto;">
+          <table  class="mat-elevation-z8">
+              <thead>
+                  <th style="border: 1px solid #f59d00;" *ngFor="let column of fileContentTest[0][0]">{{ column }}</th>
+              </thead>
+              <tbody>
+                  <tr *ngFor="let row of fileContentAff">
+                    <td style="border: 1px solid #f59d00;" *ngFor="let value of row">{{ value }}</td>
+                  </tr>
+              </tbody>
+          </table>
+        </div>
+        <mat-paginator [length]="fileContentTest[0].length" [pageSize]="pageSize" [pageSizeOptions]="[50, 100, 200]" (page)="onPageChange($event)">
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
+  
